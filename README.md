@@ -2,51 +2,45 @@
 
 ## Project Overview
 
-This repository contains an end-to-end analysis and modeling workflow for an e-commerce dataset, covering exploratory data analysis, customer segmentation, sales forecasting, validation, robustness checks, and final forecast generation.
+This repository contains an end-to-end AI/ML workflow for an e-commerce dataset, covering exploratory data analysis (EDA), customer segmentation, sales forecasting, rolling backtesting, robustness analysis, and final forecast generation.
 
-The project was developed as a reproducible AI/ML workflow with a strong emphasis on leakage-free validation, interpretable results, and business-oriented conclusions.
+The workflow emphasizes leakage-free validation, interpretable segmentation, reproducible analysis, and business-oriented conclusions.
 
 ## Objectives
 
-1. Audit and understand the transaction dataset.
-2. Analyze historical sales trends and weekday seasonality.
+1. Audit and understand the transaction data.
+2. Analyze daily sales trends and weekday seasonality.
 3. Segment customers using behavioral and monetary features.
-4. Compare simple and more advanced forecasting approaches.
-5. Select a strong but reasonably simple final forecasting model using rolling backtests.
-6. Produce a submission-ready 7-day forecast.
+4. Compare baseline and feature-based forecasting approaches.
+5. Evaluate models using rolling historical backtests.
+6. Select a strong and reasonably simple forecasting approach.
+7. Produce a submission-ready 7-day forecast.
 
-## Dataset
+## Dataset and Analysis Scope
 
-The analysis uses the provided e-commerce transaction dataset.
+The project uses the provided e-commerce transaction dataset. Derived datasets and analysis outputs are stored under `results/`.
 
-- Transactions: **72,573**
-- Unique customers: **800**
-- Historical daily period: **2022-07-01 to 2024-06-02**
-- Daily observations: **703**
+The daily sales series covers the historical period used for forecasting through **2024-06-02**, with the final forecast covering **2024-06-03 to 2024-06-09**.
 
-The raw source dataset is not duplicated in this repository when it is not required for submission. Derived analysis outputs are stored under `results/`.
+## Day 1 — EDA and Sales Analysis
 
-## Day 1 — EDA and Sales Baseline
+The EDA examined transaction-level distributions and the daily sales series. The analysis identified substantial day-to-day variability and a clear weekly pattern, with stronger expected sales on weekends.
 
-### Data and sales findings
+The project established a **56-day weekday-average forecast** as the primary benchmark for subsequent model evaluation.
 
-Daily sales show substantial day-to-day variability together with clear weekly seasonality. Weekend sales are consistently higher than weekday sales, making weekday-aware forecasting an important component of the modeling strategy.
+The repository includes EDA outputs such as:
 
-The historical daily-sales statistics were:
-
-- Minimum daily sales: **₩2,656,300**
-- Maximum daily sales: **₩10,950,187**
-- Mean daily sales: **₩5,647,876.38**
-- Median daily sales: **₩5,469,311.00**
-- Standard deviation: **₩1,258,926.86**
-
-A 56-day weekday-average baseline was established as the primary benchmark for forecasting.
+- `results/eda_statistics.csv`
+- `results/missing_values.csv`
+- `results/data_audit.csv`
+- `results/daily_sales.csv`
+- `results/weekday_eda.csv`
 
 ## Day 2 — Customer Segmentation
 
 ### Feature engineering
 
-Customer-level features were built from the transaction data, including:
+Customer-level features include:
 
 - Recency
 - Frequency
@@ -54,86 +48,77 @@ Customer-level features were built from the transaction data, including:
 - Average transaction value
 - Average discount rate
 - Average app usage time
-- Payment-method behavior
 
-`recency_days` and `monetary` were log-transformed with `log1p` because their distributions were strongly right-skewed. Features were then standardized before clustering.
-
-`payment_method_count` was excluded from the primary clustering model because it had very low variance and limited discriminative value.
+The clustering workflow applied appropriate transformations and standardization to behavioral features. Highly skewed monetary/recency variables were transformed using `log1p` before clustering.
 
 ### Clustering methodology
 
-K-Means models were evaluated for **K = 2 to 8** using:
+K-Means clustering was evaluated for **K = 2 to 8** using multiple complementary criteria, including silhouette, Calinski-Harabasz, Davies-Bouldin, elbow analysis, and stability across random seeds.
 
-- Silhouette Score
-- Calinski-Harabasz Score
-- Davies-Bouldin Score
-- Elbow analysis
-- Stability across multiple random seeds
+The final workflow selected **K = 4**, producing four interpretable customer segments.
 
-### Final segmentation
+### Final segments
 
-**K = 4** was selected. It achieved the strongest overall clustering metrics and remained highly stable across random initializations.
-
-| Segment | Customers | Customer Share | Revenue Share | Business Interpretation |
+| Segment | Customers | Customer Share | Monetary Share | Interpretation |
 | --- | ---: | ---: | ---: | --- |
-| Regular Valuable | 360 | 45.00% | 44.68% | Stable, active, valuable customers | 
-| Discount-Driven | 238 | 29.75% | 20.73% | Active customers with high discount usage | 
-| High-Value Loyal | 94 | 11.75% | 27.05% | Highest-value and highest-engagement segment |
-| At-Risk / Dormant | 108 | 13.50% | 7.54% | Long recency and lower activity |
+| Cluster 0 | 360 | 45.00% | 44.68% | Regular / valuable customers |
+| Cluster 1 | 238 | 29.75% | 20.73% | Discount-driven active customers |
+| Cluster 2 | 94 | 11.75% | 27.05% | High-value, highly engaged customers |
+| Cluster 3 | 108 | 13.50% | 7.54% | At-risk / dormant customers |
 
-The High-Value Loyal segment is particularly important: it represents only **11.75% of customers** but contributes approximately **27.05% of total monetary value**.
+Cluster 2 is strategically important because it represents only **11.75% of customers** while contributing approximately **27.05% of total monetary value**.
 
-The At-Risk / Dormant segment has an average recency of approximately **135 days**, making it a clear candidate for win-back and reactivation strategies.
+Cluster 3 has an average recency of approximately **135 days**, indicating a clear reactivation opportunity.
 
 ### PCA visualization
 
-The first two PCA components explain **72.26%** of total variance:
+The first two PCA components explain **72.26%** of the standardized feature variance:
 
-- PCA1: 43.14%
-- PCA2: 29.12%
-- Combined: 72.26%
+- PCA1: **43.14%**
+- PCA2: **29.12%**
+- Combined: **72.26%**
 
 ## Day 3 — Sales Forecasting
 
 ### Validation design
 
-Forecasting models were evaluated with rolling historical backtests using a **7-day forecast horizon**.
+Forecasting models were evaluated using rolling historical backtests with a **7-day forecast horizon**.
 
-To avoid incomplete ground truth, the final incomplete validation window was excluded. The final evaluation therefore used:
+The final incomplete validation window was excluded so that every evaluated forecast day had observed ground truth. The evaluation therefore contains:
 
 - **7 complete validation windows**
 - **49 validation days**
 
-All model features were restricted to information available at the forecasting cutoff to avoid future leakage.
+Forecasting features were restricted to information available at each forecast cutoff. Lag and rolling statistics used historical values only, preventing future-data leakage.
 
 ### Models compared
 
 #### 1. 56-day Weekday Baseline
 
-A simple benchmark using the average sales for each weekday over the most recent 56 historical days available at each cutoff.
+For each forecast date, the model uses the average sales for the corresponding weekday over the most recent 56 historical days available at the cutoff.
 
 #### 2. Trend + Weekday + Fourier
 
-A linear regression model combining:
+A regression-based model combining:
 
 - Time trend
 - Day-of-week effects
-- Weekly Fourier seasonality features
+- Weekly Fourier seasonality terms
 
 #### 3. Lag + Rolling
 
-A Random Forest model using:
+A Random Forest model using historical features including:
 
-- 1-day lag
-- 7-day lag
-- 14-day lag
-- 7-day rolling mean
-- 14-day rolling mean
-- 28-day rolling mean
+- `lag_1`
+- `lag_7`
+- `lag_14`
+- `rolling_mean_7`
+- `rolling_mean_14`
+- `rolling_mean_28`
 - Weekday
 - Trend
 
-Rolling features were constructed with `shift(1)` so current-day actual sales were never used as forecasting inputs.
+Rolling statistics were constructed from shifted historical observations so that the target day's actual sales were not used as an input.
 
 ### Model comparison
 
@@ -143,17 +128,19 @@ Rolling features were constructed with `shift(1)` so current-day actual sales we
 | Lag + Rolling | 562,520.32 | **692,877.38** | 8.86% |
 | **Trend + Weekday + Fourier** | **551,328.20** | 702,445.75 | **8.53%** |
 
-The **Trend + Weekday + Fourier** model was selected as the final model because it achieved the best overall MAE and MAPE, while maintaining reasonable robustness across rolling validation windows.
+The **Trend + Weekday + Fourier** model achieved the best MAE and MAPE among the tested models. It improved MAPE by approximately **4.84% relative to the 56-day weekday baseline**.
 
-The Fourier model improved MAPE by approximately **4.84% relative to the baseline**.
+Lag + Rolling achieved the lowest RMSE and had slightly lower MAPE variability across the validation windows, but its average MAE/MAPE were not as strong as the Fourier model.
 
-### Robustness
+### Robustness and model selection
 
-Across the seven validation windows, model performance varied by period. The Lag + Rolling model showed slightly lower MAPE variability, while the Fourier model delivered the strongest average accuracy. The final choice therefore favors the simpler strong overall performer rather than optimizing for a single validation window.
+The seven rolling validation windows show that model performance varies over time. The final selection was therefore based on aggregate performance across all validation days rather than a single window.
+
+The selected model was the **Trend + Weekday + Fourier** approach because it provided the strongest overall MAE and MAPE while remaining relatively simple and interpretable.
 
 ## Final 7-Day Forecast
 
-Using the complete historical dataset through **2024-06-02**, the selected Trend + Weekday + Fourier model produced the following forecast:
+Using historical data through **2024-06-02**, the selected forecasting pipeline generated:
 
 | Date | Weekday | Forecast |
 | --- | --- | ---: |
@@ -165,7 +152,11 @@ Using the complete historical dataset through **2024-06-02**, the selected Trend
 | 2024-06-08 | Saturday | 7,509,605.19 |
 | 2024-06-09 | Sunday | 7,528,744.72 |
 
-The forecast preserves the observed weekly pattern, with higher expected sales on Saturday and Sunday.
+The forecast retains the observed weekly pattern, with substantially higher predicted sales on Saturday and Sunday.
+
+The final file is:
+
+`results/submission_forecast.csv`
 
 ## Repository Structure
 
@@ -173,6 +164,12 @@ The forecast preserves the observed weekly pattern, with higher expected sales o
 AOROA-Labs-AI-ML-Assignment/
 ├── data/
 ├── figures/
+│   ├── daily_sales_trend.png
+│   ├── weekday_sales_pattern.png
+│   ├── customer_segments_pca.png
+│   ├── segment_revenue_contribution.png
+│   ├── forecast_model_comparison.png
+│   └── forecast_mape_comparison.png
 ├── notebooks/
 │   ├── AOROA_Day1_Analysis.ipynb
 │   ├── AOROA_Day2_Analysis.ipynb
@@ -207,9 +204,9 @@ AOROA-Labs-AI-ML-Assignment/
 
 ## Reproducibility
 
-The notebooks in `notebooks/` contain the complete exploratory and modeling workflow used to generate the reported outputs. The reusable forecasting and validation logic is separated into the `src/` modules.
+The notebooks contain the complete analysis workflow, while reusable forecasting and validation logic is separated into the `src/` modules.
 
-The workflow can be summarized as:
+The overall pipeline is:
 
 ```text
 Transaction data
@@ -233,22 +230,20 @@ Final forecast
 submission_forecast.csv
 ```
 
-## Outputs
+## Key Deliverables
 
-The primary deliverables are:
-
-- `results/submission_forecast.csv`
-- Customer segmentation outputs under `results/`
-- EDA and segmentation reports under `reports/`
-- Model and analysis figures under `figures/`
-- Reproducible notebooks under `notebooks/`
-- Reusable Python modules under `src/`
+- Final 7-day forecast: `results/submission_forecast.csv`
+- Customer segmentation outputs: `results/`
+- EDA and segmentation reports: `reports/`
+- Analysis and model figures: `figures/`
+- Reproducible notebooks: `notebooks/`
+- Reusable Python modules: `src/`
 
 ## Final Takeaways
 
-1. The sales series contains a strong weekly pattern, especially higher weekend demand.
-2. Customer behavior separates naturally into four interpretable segments.
-3. The High-Value Loyal segment is disproportionately important for revenue.
-4. A leakage-free rolling backtest is materially more informative than a single holdout split.
-5. Trend + Weekday + Fourier provided the strongest overall forecasting accuracy among the tested approaches.
-6. The final forecast has passed structural QA and is stored in `results/submission_forecast.csv`.
+1. The daily sales series exhibits a clear weekly pattern, with higher weekend demand.
+2. Four customer segments provide useful behavioral and monetary differentiation.
+3. The high-value segment is disproportionately important to total monetary contribution.
+4. Rolling backtesting provides a stronger evaluation framework than relying on a single holdout split.
+5. Trend + Weekday + Fourier achieved the best overall MAE and MAPE among the tested forecasting models.
+6. The final 7-day forecast passed structural QA, with 7 rows, the expected columns, no missing values, no duplicate dates, and no negative forecasts.
