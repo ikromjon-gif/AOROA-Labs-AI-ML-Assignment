@@ -1,5 +1,9 @@
 # AOROA Labs — AI/ML Assignment
 
+> **English:** End-to-end e-commerce analytics, customer segmentation, and 7-day sales forecasting using leakage-free rolling backtests.
+>
+> **한국어:** 이커머스 데이터를 기반으로 EDA, 고객 세분화, 시계열 예측 및 누수 없는 롤링 백테스트를 수행한 AI/ML 분석 프로젝트입니다.
+
 ## Project Overview
 
 This repository contains an end-to-end AI/ML workflow for an e-commerce dataset, covering exploratory data analysis (EDA), customer segmentation, sales forecasting, rolling backtesting, robustness analysis, and final forecast generation.
