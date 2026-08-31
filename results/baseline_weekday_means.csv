@@ -1,8 +1,8 @@
-weekday,average_sales
-Monday,5504260.875
-Tuesday,6078066.75
-Wednesday,6075171.25
-Thursday,6118395.125
-Friday,6469202.875
-Saturday,7896099.5
-Sunday,7738549.375
+weekday,mean_total_sales
+Friday,5806245.875
+Monday,5454541.125
+Saturday,8006123.375
+Sunday,7344284.625
+Thursday,5832691.875
+Tuesday,5949559.625
+Wednesday,5876613.375
