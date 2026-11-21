@@ -176,7 +176,7 @@ The latest clean raw-data run verified:
 - **Forecast equivalent: True**
 - **Return code: 0**
 
-`main.py` does not overwrite the locked official submission files during verification.
+`main.py` now refits the 56-day weekday baseline and Trend + Weekday + Fourier model independently at every complete chronological cutoff. It writes fold-level predictions, per-window metrics, and aggregate stability metrics to `results/rolling_backtest_predictions.csv`, `results/rolling_backtest_window_metrics.csv`, and `results/rolling_backtest_summary.csv`. Newly generated metrics must be rerun on the raw dataset before being described as verified results.\n\nRun validation tests with `pytest -q`.\n\n`main.py` does not overwrite the locked official submission files during verification.
 
 ## Submission Files
 
