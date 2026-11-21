@@ -342,7 +342,7 @@ def run_forecasting(daily_sales):
         os.path.join(RESULTS_DIR, "rolling_backtest_summary.csv"),
         index=False,
     )
-    print("\\nRolling backtest summary:")
+    print("\nRolling backtest summary:")
     print(rolling_summary.to_string(index=False))
 
     # Assignment's final 28-day fixed-origin forecast.
