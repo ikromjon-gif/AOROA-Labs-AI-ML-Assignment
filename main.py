@@ -38,6 +38,7 @@ from src.validation import (
     check_validation_leakage,
     get_complete_windows,
     calculate_metrics,
+    run_rolling_backtest,
 )
 
 
@@ -197,8 +198,7 @@ def run_segmentation(customer_features):
     for seed in [0, 7, 21, 42, 100, 2026]:
         kmeans = KMeans(
             n_clusters=4,
-            random_state=seed,
-            n_init=20,
+            random_state=seed,            n_init=20,
         )
         labels = kmeans.fit_predict(X_scaled)
 
@@ -322,6 +322,29 @@ def run_forecasting(daily_sales):
         daily_sales,
     )
 
+    # Refit both models independently at every chronological cutoff.
+    rolling_results, rolling_window_metrics, rolling_summary = run_rolling_backtest(
+        daily_sales,
+        complete_windows,
+        fourier_order=3,
+        baseline_days=56,
+    )
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    rolling_results.to_csv(
+        os.path.join(RESULTS_DIR, "rolling_backtest_predictions.csv"),
+        index=False,
+    )
+    rolling_window_metrics.to_csv(
+        os.path.join(RESULTS_DIR, "rolling_backtest_window_metrics.csv"),
+        index=False,
+    )
+    rolling_summary.to_csv(
+        os.path.join(RESULTS_DIR, "rolling_backtest_summary.csv"),
+        index=False,
+    )
+    print("\\nRolling backtest summary:")
+    print(rolling_summary.to_string(index=False))
+
     # Assignment's final 28-day fixed-origin forecast.
     forecast_dates = pd.date_range(
         start=daily_sales["date"].max() + pd.Timedelta(days=1),
@@ -397,8 +420,7 @@ def save_outputs(
 ):
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    daily_sales.to_csv(
-        os.path.join(RESULTS_DIR, "daily_sales.csv"),
+    daily_sales.to_csv(        os.path.join(RESULTS_DIR, "daily_sales.csv"),
         index=False,
     )
 
@@ -597,8 +619,7 @@ def verify_against_locked_submissions(
         and np.allclose(
             generated_forecast["predicted_sales"].to_numpy(),
             locked_forecast["predicted_sales"].to_numpy(),
-            rtol=1e-10,
-            atol=1e-6,
+            rtol=1e-10,            atol=1e-6,
         )
     )
 
