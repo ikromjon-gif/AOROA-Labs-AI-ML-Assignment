@@ -168,7 +168,7 @@ The latest clean raw-data run verified:
 - 703 daily sales records
 - 800 customers
 - K=4 clustering: Silhouette 0.3566, CH 415.15, DB 1.0360
-- 7 complete rolling validation windows
+- Previous report recorded 7 complete rolling validation windows; the current pipeline recalculates the complete folds from the raw date series
 - 28-day forecast
 - **Segments exact value match: True**
 - **Forecast dates match: True**
