@@ -75,14 +75,6 @@ def get_complete_windows(validation_windows, daily_sales):
     """Keep only windows whose every target date exists in the observed series."""
     data = _prepare_daily_sales(daily_sales)
     available = set(data["date"])
-    complete = []
-    for row in validation_windows.itertuples(index=False):
-        expected = pd.date_range(row.forecast_start, row.forecast_end, freq="D")
-        if all(date in available for date in expected):
-            complete.append(row.Index if hasattr(row, "Index") else None)
-    if len(complete) == len(validation_windows):
-        return validation_windows.copy().reset_index(drop=True)
-
     mask = []
     for row in validation_windows.itertuples(index=False):
         expected = pd.date_range(row.forecast_start, row.forecast_end, freq="D")
